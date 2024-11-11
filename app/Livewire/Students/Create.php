@@ -1,79 +1,43 @@
 <?php
 
-namespace App\Http\Livewire\Students;
+namespace App\Livewire\Students;
 
-use Livewire\Component;
+use App\Livewire\Forms\StudentForm;
+use App\Models\Classes;
+use App\Models\Section;
 use App\Models\Student;
-use App\Models\Classroom; // Assuming you have a Classroom model
-use App\Models\Section;  // Assuming you have a Section model
+use Livewire\Component;
 
 class Create extends Component
 {
-    public $form = [
-        'name' => '',
-        'email' => '',
-        'class_id' => '',
-        'section_id' => '',
-    ];
+    public StudentForm $form;
 
-    public $classes;
-    public $sections;
+    public $sections = [];
 
-    // Mount function to load classes and sections
-    public function mount()
-    {
-        $this->classes = Classroom::all(); // Fetch all classrooms
-        $this->sections = Section::all(); // Fetch all sections
-    }
-
-    // Method to handle student addition
-    public function addStudent()
-    {
-        // Validate form data
-        $validatedData = $this->validate([
-            'form.name' => 'required|string|max:255',
-            'form.email' => 'required|email|unique:students,email',
-            'form.class_id' => 'required|exists:classes,id',
-            'form.section_id' => 'required|exists:sections,id',
-        ]);
-
-        // Add the student to the database
-        Student::create([
-            'name' => $this->form['name'],
-            'email' => $this->form['email'],
-            'class_id' => $this->form['class_id'],
-            'section_id' => $this->form['section_id'],
-        ]);
-
-        // Emit a success message
-        $this->emit('studentAdded', 'Student has been added successfully!');
-    }
-
-    // Render the view
     public function render()
     {
-        return view('livewire.students.create');
+        return view('livewire.students.create', [
+            'classes' => Classes::all(),
+            'sections' => $this->sections  // Pass sections to the view
+        ]);
     }
-    public function addStudent()
-{
-    $validatedData = $this->validate([
-        'form.name' => 'required|string|max:255',
-        'form.email' => 'required|email|unique:students,email',
-        'form.class_id' => 'required|exists:classes,id',
-        'form.section_id' => 'required|exists:sections,id',
-    ]);
 
-    // Add student to database
-    Student::create([
-        'name' => $this->form['name'],
-        'email' => $this->form['email'],
-        'class_id' => $this->form['class_id'],
-        'section_id' => $this->form['section_id'],
-    ]);
+    public function updated($property)
+    {
+        // Trigger when class_id changes
+        if ($property === 'form.class_id') {
+            $this->sections = Section::where('class_id', $this->form->class_id)->get();
+        }
+    }
 
-    // Emit the success message
-    $this->emit('studentAdded', 'Student has been added successfully!');
+    public function store()
+    {
+        $this->validate();
+
+        Student::create($this->form->all());
+
+        flash()->success('Student added successfully');
+
+        return $this->redirect(Index::class, navigate: true);
+    }
 }
-
-}
-

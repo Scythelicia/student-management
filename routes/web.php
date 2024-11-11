@@ -1,25 +1,24 @@
 <?php
 
-use App\Models\Classes;
+use App\Http\Controllers\ProfileController;
+use App\Livewire\Students;
 use Illuminate\Support\Facades\Route;
-use App\Http\Livewire\StudentsList;
 
-// Use the Livewire component for the students page
-Route::get('/students', StudentsList::class);
-
-
-// Fetch classes with sections and students, and pass them to the 'home' view
 Route::get('/', function () {
-    $classes = Classes::with('sections.students')->get();
-    return view('home', compact('classes'));
+    return view('home');
 });
 
-// Additional routes for about and contact pages
-Route::get('/about', function () {
-    return view("about");
-});
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::get('/contact', function () {
-    return view("contact");
-});
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    Route::get('/students', Students\Index::class)->name('students.index');
+    Route::get('/students/create', Students\Create::class)->name('students.create');
+    Route::get('/students/edit/{student}', Students\Edit::class)->name('students.edit');
+});
+require __DIR__.'/auth.php'; 

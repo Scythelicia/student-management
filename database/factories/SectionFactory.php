@@ -14,11 +14,10 @@ class SectionFactory extends Factory
      *
      * @return array<string, mixed>
      */
-    public function definition()
-{
-    return [
-        'name' => $this->faker->word,
-    ];
-}
-
+    public function definition(): array
+    {
+        return [
+            //
+        ];
+    }
 }
